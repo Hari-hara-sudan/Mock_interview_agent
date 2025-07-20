@@ -1,3 +1,1 @@
-import Vapi from "@vapi-ai/web";
-
-export const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_WEB_TOKEN!);
+// File intentionally left blank to avoid server-side imports of @vapi-ai/web

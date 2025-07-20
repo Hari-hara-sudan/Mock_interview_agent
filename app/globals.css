@@ -139,7 +139,9 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    background: #0a0a0a;
+    color: #f3f4f6;
+    min-height: 100vh;
   }
   p {
     @apply text-light-100;
@@ -190,7 +192,11 @@
   }
 
   .card {
-    @apply dark-gradient rounded-2xl min-h-full;
+    background: #fff;
+    border-radius: 1.25rem;
+    border: 1.5px solid #e0e7ef;
+    box-shadow: 0 4px 24px 0 #2563eb0d;
+    padding: 2rem;
   }
 
   .form {
@@ -300,10 +306,6 @@
 
 @utility border-gradient {
   @apply bg-gradient-to-b from-[#4B4D4F] to-[#4B4D4F33];
-}
-
-@utility pattern {
-  @apply bg-[url('/pattern.png')] bg-top bg-no-repeat;
 }
 
 @utility blue-gradient-dark {

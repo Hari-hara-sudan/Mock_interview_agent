@@ -153,8 +153,8 @@ End the conversation on a polite and positive note.
       },
     ],
   },
-  clientMessages: [],
-  serverMessages: [],
+  clientMessages: undefined,
+  serverMessages: undefined,
 };
 
 export const feedbackSchema = z.object({
@@ -192,18 +192,18 @@ export const feedbackSchema = z.object({
 });
 
 export const interviewCovers = [
-  "/adobe.png",
-  "/amazon.png",
-  "/facebook.png",
-  "/hostinger.png",
-  "/pinterest.png",
-  "/quora.png",
-  "/reddit.png",
-  "/skype.png",
-  "/spotify.png",
-  "/telegram.png",
-  "/tiktok.png",
-  "/yahoo.png",
+  "/covers/adobe.png",
+  "/covers/amazon.png",
+  "/covers/facebook.png",
+  "/covers/hostinger.png",
+  "/covers/pinterest.png",
+  "/covers/quora.png",
+  "/covers/reddit.png",
+  "/covers/skype.png",
+  "/covers/spotify.png",
+  "/covers/telegram.png",
+  "/covers/tiktok.png",
+  "/covers/yahoo.png",
 ];
 
 export const dummyInterviews: Interview[] = [
@@ -216,6 +216,7 @@ export const dummyInterviews: Interview[] = [
     level: "Junior",
     questions: ["What is React?"],
     finalized: false,
+    template: false,
     createdAt: "2024-03-15T10:00:00Z",
   },
   {
@@ -227,6 +228,7 @@ export const dummyInterviews: Interview[] = [
     level: "Senior",
     questions: ["What is Node.js?"],
     finalized: false,
+    template: false,
     createdAt: "2024-03-14T15:30:00Z",
   },
 ];

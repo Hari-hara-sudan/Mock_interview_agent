@@ -93,13 +93,12 @@ export async function getFeedbackByInterviewId(
 export async function getLatestInterviews(
   params: GetLatestInterviewsParams
 ): Promise<Interview[] | null> {
-  const { userId, limit = 20 } = params;
+  const { limit = 20 } = params;
 
   const interviews = await db
     .collection("interviews")
+    .where("template", "==", true)
     .orderBy("createdAt", "desc")
-    .where("finalized", "==", true)
-    .where("userId", "!=", userId)
     .limit(limit)
     .get();
 
@@ -115,6 +114,7 @@ export async function getInterviewsByUserId(
   const interviews = await db
     .collection("interviews")
     .where("userId", "==", userId)
+    .where("template", "==", false)
     .orderBy("createdAt", "desc")
     .get();
 

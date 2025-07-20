@@ -5,8 +5,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
-import { vapi } from "@/lib/vapi.sdk";
-import { createFeedback } from "@/lib/actions/general.action";
+import Vapi from "@vapi-ai/web";
+import { auth } from "@/firebase/client";
 
 enum CallStatus {
   INACTIVE = "INACTIVE",
@@ -59,6 +59,8 @@ const Agent = ({
   const workflowId = process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!;
   const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID!;
 
+  const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_WEB_TOKEN!);
+
   useEffect(() => {
     const onCallStart = () => {
       setCallStatus(CallStatus.ACTIVE);
@@ -81,17 +83,7 @@ const Agent = ({
       }
     };
 
-    // Add transcript event handler for Vapi SDK
-    const onTranscript = (event: any) => {
-      console.log("VAPI transcript event:", event);
-      if (event.transcriptType === "interim") {
-        setPartialTranscript(event.transcript);
-      } else if (event.transcriptType === "final") {
-        const newMessage = { role: event.role || "user", content: event.transcript };
-        setMessages((prev) => [...prev, newMessage]);
-        setPartialTranscript("");
-      }
-    };
+
 
     const onSpeechStart = () => setIsSpeaking(true);
     const onSpeechEnd = () => {
@@ -99,15 +91,21 @@ const Agent = ({
       setPartialTranscript("");
     };
     const onError = (error: any) => {
+      if (!error || (typeof error === "object" && Object.keys(error).length === 0)) return;
+      
+      // Handle ejection/meeting end gracefully
+      if (error?.error?.type === "ejected" || error?.errorMsg === "Meeting has ended") {
+        if (callStatus !== CallStatus.FINISHED) {
+          setCallStatus(CallStatus.FINISHED);
+          setErrorMessage("The meeting has ended or you were ejected.");
+        }
+        return; // Suppress console log for expected ejection
+      }
+      
+      // Log other errors but don't show them to user unless they're significant
       console.error("VAPI Error:", error);
       let message = "";
-      if (
-        (error?.error?.type === "ejected" || error?.errorMsg === "Meeting has ended") &&
-        callStatus !== CallStatus.FINISHED
-      ) {
-        setCallStatus(CallStatus.FINISHED);
-        message = "The meeting has ended or you were ejected.";
-      } else if (error && (error.errorMsg || error.message)) {
+      if (error && (error.errorMsg || error.message)) {
         message = error.errorMsg || error.message;
       } else {
         message = "An unknown error occurred during the call.";
@@ -138,12 +136,30 @@ const Agent = ({
     }
 
     const handleGenerateFeedback = async (messages: SavedMessage[]) => {
-      const { success, feedbackId: id } = await createFeedback({
-        interviewId: interviewId!,
-        userId: userId!,
-        transcript: messages,
-        feedbackId,
+      // Updated prompt: instruct AI to return at most 5 categoryScores
+      const feedbackPrompt = `
+        Analyze the following interview transcript and generate feedback for the candidate.
+        Return a JSON object with the following fields:
+        - totalScore: number
+        - categoryScores: an array of at most 5 objects, each with name, score, and comment
+        - strengths: array of strings
+        - areasForImprovement: array of strings
+        - finalAssessment: string
+        IMPORTANT: The categoryScores array must contain no more than 5 elements.
+        Transcript:
+        ${JSON.stringify(messages)}
+      `;
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          interviewId: interviewId!,
+          userId: userId!,
+          transcript: messages,
+          feedbackId,
+        }),
       });
+      const { success, feedbackId: id } = await res.json();
 
       if (success && id) {
         router.push(`/interview/${interviewId}/feedback`);
@@ -166,18 +182,21 @@ const Agent = ({
     if (shouldBlockVapi) return; // Block VAPI if guard triggers
     setCallStatus(CallStatus.CONNECTING);
     try {
-      // Always use the assistant and pass all required variables
-      await vapi.start(process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID!, {
+      // Use the interview assistant if questions are present, else use the generator assistant
+      const assistantId = questions && questions.length > 0
+        ? process.env.NEXT_PUBLIC_VAPI_INTERVIEW_ASSISTANT_ID!
+        : process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID!;
+      await vapi.start(assistantId, {
         variableValues: {
           username: userName,
-          userid: userId,
-          type,        // e.g. "technical"
-          role,        // e.g. "Frontend Developer"
-          level,       // e.g. "Junior"
-          techstack,   // e.g. "React, TypeScript"
-          amount,      // e.g. "5"
+          userId: userId, // Always send the UID from profile
+          role,
+          type,
+          level,
+          techstack,
+          amount,
+          ...(questions ? { questions } : {}),
         },
-        // Remove clientMessages and serverMessages if not required by the SDK
       });
     } catch (error) {
       console.error("Error starting call:", error);
@@ -190,133 +209,93 @@ const Agent = ({
     vapi.stop();
   };
 
+  // Add a function to generate interview (example, place this where you handle interview generation)
+  const generateInterview = async (params: { type: string; role: string; level: string; techstack: string; amount: string }) => {
+    const user = auth.currentUser;
+    if (!user) throw new Error("User not authenticated");
+    const idToken = await user.getIdToken();
+    const res = await fetch("/api/vapi/generate", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${idToken}`,
+      },
+      body: JSON.stringify(params),
+    });
+    return res.json();
+  };
+
   return (
     <>
-      <div className="call-view">
+      <div className="call-view gap-8">
         {/* AI Interviewer Card */}
-        <div className="card-interviewer">
-          <div className="avatar">
+        <div className="flex-1 flex flex-col items-center justify-center bg-[#18181b] border border-[#232323] rounded-2xl shadow-lg p-8 min-h-[320px]">
+          <div className="avatar mb-4">
             <Image
               src="/ai-avatar.png"
               alt="AI Avatar"
-              width={65}
-              height={54}
-              className="object-cover"
+              width={80}
+              height={80}
+              className="object-cover rounded-full border-2 border-[#232323] bg-[#232323]"
             />
             {isSpeaking && <span className="animate-speak" />}
           </div>
-          <h3>AI Interviewer</h3>
+          <h3 className="text-lg font-bold text-white">AI Interviewer</h3>
         </div>
 
         {/* User Card */}
-        <div className="card-border">
-          <div className="card-content">
-            <Image
-              src="/user-avatar.png"
-              alt="User Avatar"
-              width={120}
-              height={120}
-              className="rounded-full object-cover size-[120px]"
-            />
-            <h3>{userName}</h3>
-          </div>
+        <div className="flex-1 flex flex-col items-center justify-center bg-[#18181b] border border-[#232323] rounded-2xl shadow-lg p-8 min-h-[320px]">
+          <Image
+            src="/user-avatar.png"
+            alt="User Avatar"
+            width={80}
+            height={80}
+            className="rounded-full object-cover border-2 border-[#232323] bg-[#232323]"
+          />
+          <h3 className="text-lg font-bold text-white mt-4">{userName}</h3>
         </div>
       </div>
 
-      {errorMessage ? (
-        <div className="transcript-border">
-          <div className="transcript">
-            <p className="text-red-500 text-center">{errorMessage}</p>
-          </div>
-        </div>
-      ) : messages.length > 0 ? (
-        <div className="transcript-border">
-          <div className="transcript">
-            <p
-              key={lastMessage}
-              className={cn(
-                "transition-opacity duration-500 opacity-0",
-                "animate-fadeIn opacity-100"
-              )}
-            >
-              {lastMessage}
-            </p>
-          </div>
-        </div>
-      ) : partialTranscript ? (
-        <div className="transcript-border">
-          <div className="transcript">
-            <p
-              key={partialTranscript}
-              className={cn(
-                "transition-opacity duration-500 opacity-0",
-                "animate-fadeIn opacity-100 text-blue-500"
-              )}
-            >
-              {partialTranscript}
-            </p>
-          </div>
-        </div>
-      ) : (
-        <div className="transcript-border">
-          <div className="transcript">
-            {messages.filter(m => m.role === "assistant").map((msg, idx) => (
-              <p
-                key={idx}
-                className={cn(
-                  "transition-opacity duration-500 opacity-0",
-                  "animate-fadeIn opacity-100"
-                )}
-              >
-                {msg.content}
-              </p>
-            ))}
-            {partialTranscript && (
-              <p
-                key={partialTranscript}
-                className={cn(
-                  "transition-opacity duration-500 opacity-0",
-                  "animate-fadeIn opacity-100 text-blue-500"
-                )}
-              >
-                {partialTranscript}
-              </p>
-            )}
-            {messages.filter(m => m.role === "assistant").length === 0 && !partialTranscript && (
-              <p
-                key="listening"
-                className={cn(
-                  "transition-opacity duration-500 opacity-0",
-                  "animate-fadeIn opacity-100"
-                )}
-              >
-                Listening...
-              </p>
-            )}
+      {/* Transcript/Status Bar */}
+      {(errorMessage || messages.length > 0 || partialTranscript) && (
+        <div className="w-full flex justify-center mt-8">
+          <div className="w-full max-w-2xl bg-[#232323] bg-opacity-80 rounded-full px-8 py-4 shadow text-center text-lg text-white font-medium">
+            {errorMessage ? (
+              <span className="text-red-400">{errorMessage}</span>
+            ) : partialTranscript ? (
+              <span className="text-blue-400 animate-pulse">{partialTranscript}</span>
+            ) : messages.length > 0 ? (
+              <span>{lastMessage}</span>
+            ) : null}
           </div>
         </div>
       )}
 
-      <div className="w-full flex justify-center">
+      {/* Call Controls */}
+      <div className="w-full flex justify-center mt-8">
         {errorMessage && (
           <div className="text-red-500 text-center mb-2">{errorMessage}</div>
         )}
-        {callStatus !== "ACTIVE" ? (
-          <button className="relative btn-call" onClick={handleCall}>
-            <span
-              className={cn(
-                "absolute animate-ping rounded-full opacity-75",
-                callStatus !== "CONNECTING" && "hidden"
-              )}
-            />
-            <span className="relative">
-              {callStatus === "INACTIVE" || callStatus === "FINISHED"
-                ? "Call"
-                : ". . ."}
-            </span>
+        {callStatus === "INACTIVE" || callStatus === "FINISHED" ? (
+          <button
+            className="px-10 py-3 rounded-full bg-green-500 text-white text-lg font-bold shadow-lg hover:bg-green-600 transition"
+            onClick={handleCall}
+          >
+            Call
+          </button>
+        ) : callStatus === "CONNECTING" ? (
+          <button
+            className="px-10 py-3 rounded-full bg-blue-600 text-white text-lg font-bold shadow-lg flex items-center gap-2 cursor-not-allowed opacity-80"
+            disabled
+          >
+            <span className="loader border-2 border-t-2 border-t-white border-blue-400 rounded-full w-5 h-5 animate-spin" />
+            Connecting...
           </button>
         ) : (
-          <button className="btn-disconnect" onClick={handleDisconnect}>
+          <button
+            className="px-10 py-3 rounded-full bg-red-600 text-white text-lg font-bold shadow-lg hover:bg-red-700 transition"
+            onClick={handleDisconnect}
+          >
             End
           </button>
         )}

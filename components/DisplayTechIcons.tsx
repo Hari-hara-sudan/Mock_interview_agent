@@ -1,9 +1,20 @@
+"use client";
+
 import Image from "next/image";
+import { useEffect, useState } from "react";
 
 import { cn, getTechLogos } from "@/lib/utils";
 
-const DisplayTechIcons = async ({ techStack }: TechIconProps) => {
-  const techIcons = await getTechLogos(techStack);
+const DisplayTechIcons = ({ techStack }: TechIconProps) => {
+  const [techIcons, setTechIcons] = useState<{ tech: string; url: string }[]>([]);
+
+  useEffect(() => {
+    async function fetchIcons() {
+      const icons = await getTechLogos(techStack);
+      setTechIcons(icons);
+    }
+    fetchIcons();
+  }, [techStack]);
 
   return (
     <div className="flex flex-row">

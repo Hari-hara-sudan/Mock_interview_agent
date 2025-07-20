@@ -1,0 +1,160 @@
+/* Form Container */
+.space-y-6 > * + * {
+  margin-top: 1.5rem;
+}
+
+/* Field Groups */
+.space-y-2 > * + * {
+  margin-top: 0.5rem;
+}
+
+/* Input Fields */
+.form-input {
+  height: 3rem; /* h-12 */
+  padding-left: 2.5rem; /* pl-10 for icon space */
+  background-color: rgba(var(--background), 0.5); /* bg-background/50 */
+  border-color: hsl(var(--border));
+  transition: all 0.2s ease;
+}
+
+.form-input:focus {
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 2px rgba(var(--primary), 0.2); /* focus:ring-2 focus:ring-primary/20 */
+}
+
+/* Password Input */
+.password-input {
+  padding-left: 2.5rem; /* pl-10 */
+  padding-right: 2.5rem; /* pr-10 for toggle button */
+}
+
+/* Icon Positioning */
+.input-icon {
+  position: absolute;
+  left: 0.75rem; /* left-3 */
+  top: 50%;
+  transform: translateY(-50%);
+  color: hsl(var(--muted-foreground));
+  width: 1.25rem; /* w-5 */
+  height: 1.25rem; /* h-5 */
+}
+
+.toggle-icon {
+  position: absolute;
+  right: 0.75rem; /* right-3 */
+  top: 50%;
+  transform: translateY(-50%);
+  color: hsl(var(--muted-foreground));
+  transition: color 0.2s ease;
+}
+
+.toggle-icon:hover {
+  color: hsl(var(--foreground));
+}
+
+/* Labels */
+.form-label {
+  font-size: 0.875rem; /* text-sm */
+  font-weight: 500; /* font-medium */
+  color: hsl(var(--foreground));
+}
+
+/* Forgot Password Link */
+.forgot-link {
+  font-size: 0.875rem; /* text-sm */
+  color: hsl(var(--primary));
+  transition: color 0.2s ease;
+}
+
+.forgot-link:hover {
+  color: hsl(var(--primary), 0.8); /* hover:text-primary/80 */
+  text-decoration: underline;
+}
+
+/* Submit Button */
+.submit-button {
+  width: 100%; /* w-full */
+  height: 3rem; /* h-12 */
+  background: linear-gradient(to right, #8b5cf6, #3b82f6); /* from-purple-500 to-blue-500 */
+  color: white;
+  font-weight: 600; /* font-semibold */
+  border-radius: 0.5rem; /* rounded-lg */
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05); /* shadow-lg */
+  transition: all 0.2s ease;
+  transform: scale(1);
+}
+
+.submit-button:hover {
+  background: linear-gradient(to right, #7c3aed, #2563eb); /* hover:from-purple-600 hover:to-blue-600 */
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* hover:shadow-xl */
+  transform: scale(1.05); /* hover:scale-105 */
+}
+
+.submit-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+  width: 1.25rem; /* w-5 */
+  height: 1.25rem; /* h-5 */
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Button Content Flex */
+.button-content {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem; /* gap-2 */
+}
+
+/* Form Container */
+.form-container {
+  background: linear-gradient(120deg, rgba(255,255,255,0.10) 60%, rgba(255,255,255,0.08) 100%);
+  box-shadow: 
+    0 16px 64px 0 rgba(31, 38, 135, 0.32), 
+    0 2px 16px 0 rgba(0,0,0,0.28),
+    inset 0 1px 8px 0 rgba(255,255,255,0.18),
+    0 0 0 2px rgba(255,255,255,0.25);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border-radius: 2rem;
+  border: 2.5px solid rgba(255,255,255,0.45); /* brighter white border */
+  transition: all 0.3s ease;
+  padding: 2.5rem 2rem;
+  min-width: 320px;
+  max-width: 420px;
+  width: 100%;
+  z-index: 2;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow: hidden;
+}
+
+.form-container:hover {
+  box-shadow: 
+    0 20px 80px 0 rgba(31, 38, 135, 0.4), 
+    0 4px 20px 0 rgba(0,0,0,0.3),
+    inset 0 1px 12px 0 rgba(255,255,255,0.22),
+    0 0 0 2.5px rgba(255,255,255,0.35);
+  transform: translateY(-2px);
+}
+
+@media (max-width: 600px) {
+  .form-container {
+    padding: 1.2rem 0.5rem;
+    min-width: 0;
+    max-width: 98vw;
+  }
+}

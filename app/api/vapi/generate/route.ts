@@ -31,10 +31,11 @@ export async function POST(request: Request) {
       level: level,
       techstack: techstack.split(","),
       questions: JSON.parse(questions),
-      userId: userid,
+      userId: null, // <-- For templates
       finalized: true,
       coverImage: getRandomInterviewCover(),
       createdAt: new Date().toISOString(),
+      template: true, // <-- Always set this for templates!
     };
 
     await db.collection("interviews").add(interview);
