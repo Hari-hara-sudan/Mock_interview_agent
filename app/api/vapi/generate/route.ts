@@ -5,7 +5,10 @@ import { db } from "@/firebase/admin";
 import { getRandomInterviewCover } from "@/lib/utils";
 
 export async function POST(request: Request) {
-  const { type, role, level, techstack, amount, userid } = await request.json();
+  const body = await request.json();
+  console.log("Received request body:", JSON.stringify(body, null, 2));
+  
+  const { type, role, level, techstack, amount, userId } = body;
 
   try {
     const { text: questions } = await generateText({
@@ -25,17 +28,20 @@ export async function POST(request: Request) {
     `,
     });
 
+    // Determine if this is a user-specific interview or a template
+    const isTemplate = !userId || userId === null || userId === "";
+    
     const interview = {
       role: role,
       type: type,
       level: level,
       techstack: techstack.split(","),
       questions: JSON.parse(questions),
-      userId: null, // <-- For templates
+      userId: isTemplate ? null : userId, // Use actual user ID if provided
       finalized: true,
       coverImage: getRandomInterviewCover(),
       createdAt: new Date().toISOString(),
-      template: true, // <-- Always set this for templates!
+      template: isTemplate, // Set as template only if no user ID
     };
 
     await db.collection("interviews").add(interview);
