@@ -4,16 +4,18 @@ import dayjs from "dayjs";
 import Link from "next/link";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
-import { Interview, NormalizedInterview } from "@/types";
 
-interface InterviewCardProps {
-  interview: Interview | NormalizedInterview;
+const InterviewCard = ({
+  interview,
+  userId,
+  cover,
+  feedbacks,
+}: {
+  interview: any;
   userId: string;
-  cover?: string;
+  cover: string;
   feedbacks: any[];
-}
-
-const InterviewCard = ({ interview, userId, cover, feedbacks }: InterviewCardProps) => {
+}) => {
   const normalizedType = /mix/gi.test(interview.type) ? "Mixed" : interview.type;
 
   const typeColors = {
@@ -29,36 +31,23 @@ const InterviewCard = ({ interview, userId, cover, feedbacks }: InterviewCardPro
   const hasResult = feedbacks && feedbacks.length > 0;
   const score = feedbacks?.[0]?.totalScore || 0;
 
-  const displayCover = cover || (interview as any).cover || "/covers/amazon.png";
-
   return (
     <div className="group relative bg-[#1a1a1a] rounded-lg border border-[#333] p-6 hover:border-[#444] transition-all duration-200 hover:transform hover:scale-[1.02]">
       <Link href={hasResult ? `/interview/${interview.id}/feedback` : `/interview/${interview.id}`} className="block">
-        {/* Header with small circular cover */}
+        {/* Header */}
         <div className="flex justify-between items-start mb-4">
-          <div className="flex items-center gap-3">
-            {/* Small circular cover image */}
-            <div className="relative w-12 h-12 rounded-full overflow-hidden bg-[#232323] border border-[#333]">
-              <Image
-                src={displayCover}
-                alt={`${interview.role} company logo`}
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="flex flex-col gap-1">
-              <span className={cn(
-                "px-2 py-1 text-xs rounded border capitalize w-fit",
-                typeColors[normalizedType as keyof typeof typeColors] || typeColors.Mixed
-              )}>
-                {normalizedType}
+          <div className="flex gap-2">
+            <span className={cn(
+              "px-2 py-1 text-xs rounded border capitalize",
+              typeColors[normalizedType as keyof typeof typeColors] || typeColors.Mixed
+            )}>
+              {normalizedType}
+            </span>
+            {hasResult && (
+              <span className="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded">
+                Completed
               </span>
-              {hasResult && (
-                <span className="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 rounded w-fit">
-                  Completed
-                </span>
-              )}
-            </div>
+            )}
           </div>
         </div>
 

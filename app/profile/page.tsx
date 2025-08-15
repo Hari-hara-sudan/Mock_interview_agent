@@ -10,7 +10,7 @@ export default async function ProfilePage() {
   // Fetch all feedbacks for each interview and attach as feedbacks array
   const interviewsWithFeedbacks = user?.id
     ? await Promise.all(
-        (interviews || []).map(async (interview) => {
+        (interviews || []).filter(Boolean).map(async (interview) => {
           const feedbacks = await getAllFeedbacksByInterviewId({ interviewId: interview.id, userId: user.id });
           // Assign a deterministic cover image based on interview id (to avoid hydration mismatch)
           const coverImages = [

@@ -18,6 +18,7 @@ import {
   Legend,
 } from "recharts";
 import { FaUserCircle, FaStar, FaChartLine, FaTrophy, FaRegSadTear, FaSearch } from "react-icons/fa";
+import { User } from "@/types";
 
 interface ProfileClientProps {
   user: User | null;
@@ -352,14 +353,10 @@ export default function ProfileClient({ user, interviews }: ProfileClientProps) 
           filteredInterviews.map((interview: any) => (
             <InterviewCard
               key={interview.id}
-              userId={user?.id}
-              interviewId={interview.id}
-              role={interview.role}
-              type={interview.type}
-              techstack={interview.techstack}
-              createdAt={interview.createdAt}
-              coverImage={interview.coverImage}
-              feedback={interview.feedbacks?.[0]}
+              userId={user?.id as string}
+              interview={interview}
+              cover={interview.coverImage}
+              feedbacks={interview.feedbacks || []}
             />
           ))
         ) : (
