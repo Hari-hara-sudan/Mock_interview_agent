@@ -21,6 +21,7 @@ import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 
 import CustomFormField from "./FormField";
+import { FormType } from "@/types";
 
 const authFormSchema = (type: FormType) => {
   return z.object({
@@ -100,7 +101,7 @@ const AuthForm = ({ type }: { type: FormType }) => {
   return (
     <div className="bg-dark-200 rounded-2xl shadow-2xl ring-2 ring-primary-200/40 p-12 w-full max-w-xl border border-primary-200 mx-auto">
       <div className="flex flex-col items-center mb-10">
-        <img src="/logo.svg" alt="PrepWise Logo" width={56} height={56} />
+        <img src="/logo.svg" alt="VoxMentor Logo" width={56} height={56} />
         <h2 className="text-4xl font-extrabold mt-4 text-primary-200 tracking-tight">
           {isSignIn ? "Sign In" : "Create Account"}
         </h2>
