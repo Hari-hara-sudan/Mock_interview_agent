@@ -98,7 +98,6 @@ export interface SignUpParams {
   uid: string;
   name: string;
   email: string;
-  password: string;
 }
 
 export type FormType = "sign-in" | "sign-up";

@@ -1,36 +1,35 @@
-import { signIn } from "@/lib/actions/auth.action";
+import { signUp } from "@/lib/actions/auth.action";
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    const { email, idToken } = await req.json();
+    const { uid, name, email } = await req.json();
     
-    if (!email || !idToken) {
+    if (!uid || !name || !email) {
       return NextResponse.json(
-        { success: false, message: "Email and ID token are required" },
+        { success: false, message: "UID, name, and email are required" },
         { status: 400 }
       );
     }
     
-    const result = await signIn({ email, idToken });
+    const result = await signUp({ uid, name, email });
     
     if (result.success) {
       return NextResponse.json({
         success: true,
         message: result.message,
-        user: result.user,
       });
     } else {
       return NextResponse.json(
         { success: false, message: result.message },
-        { status: 401 }
+        { status: 400 }
       );
     }
   } catch (error) {
-    console.error("Sign-in API error:", error);
+    console.error("Sign-up API error:", error);
     return NextResponse.json(
       { success: false, message: "Internal server error" },
       { status: 500 }
     );
   }
-} 
+}

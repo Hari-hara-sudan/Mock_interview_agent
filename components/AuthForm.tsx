@@ -2,7 +2,6 @@
 
 import { z } from "zod";
 import Link from "next/link";
-import Image from "next/image";
 import { toast } from "sonner";
 import { auth } from "@/firebase/client";
 import { useForm } from "react-hook-form";
@@ -27,13 +26,14 @@ const authFormSchema = (type: FormType) => {
   return z.object({
     name: type === "sign-up" ? z.string().min(3) : z.string().optional(),
     email: z.string().email(),
-    password: z.string().min(3),
+    password: z.string().min(6),
   });
 };
 
 const AuthForm = ({ type }: { type: FormType }) => {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const formSchema = authFormSchema(type);
   const form = useForm<z.infer<typeof formSchema>>({
@@ -46,53 +46,97 @@ const AuthForm = ({ type }: { type: FormType }) => {
   });
 
   const onSubmit = async (data: z.infer<typeof formSchema>) => {
+    setIsLoading(true);
+    
     try {
       if (type === "sign-up") {
+        // Sign up flow
         const { name, email, password } = data;
         const userCredential = await createUserWithEmailAndPassword(
           auth,
           email,
           password
         );
-        // Optionally, update the user's display name
+        
+        // Update display name
         await updateProfile(userCredential.user, { displayName: name });
 
         // Create user in Firestore via backend API
-        await fetch("/api/auth/sign-up", {
+        const response = await fetch("/api/auth/sign-up", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             uid: userCredential.user.uid,
             name,
             email,
-            password,
           }),
         });
 
-        toast.success("Account created successfully. Please sign in.");
-        window.location.href = "/sign-in";
+        const result = await response.json();
+        
+        if (result.success) {
+          toast.success("Account created successfully!");
+          router.push("/sign-in");
+        } else {
+          throw new Error(result.message || "Failed to create account");
+        }
       } else {
+        // Sign in flow
         const { email, password } = data;
+        
+        // Authenticate with Firebase
         const userCredential = await signInWithEmailAndPassword(
           auth,
           email,
           password
         );
-        // Get the ID token
+        
+        // Get ID token
         const idToken = await userCredential.user.getIdToken();
-        // Call backend to set session cookie
-        await fetch("/api/auth/sign-in", {
+        
+        // Call backend to create session
+        const response = await fetch("/api/auth/sign-in", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({ email, idToken }),
           credentials: "include",
         });
-        toast.success("Signed in successfully.");
-        window.location.href = "/";
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          toast.success("Welcome back!");
+          // Force a page reload to ensure session is properly set
+          window.location.href = "/";
+        } else {
+          throw new Error(result.message || "Sign in failed");
+        }
       }
-    } catch (error) {
-      console.log(error);
-      toast.error(`There was an error: ${error}`);
+    } catch (error: any) {
+      console.error("Auth error:", error);
+      
+      // Handle Firebase auth errors
+      let errorMessage = "An error occurred. Please try again.";
+      
+      if (error.code === "auth/user-not-found") {
+        errorMessage = "No account found with this email.";
+      } else if (error.code === "auth/wrong-password") {
+        errorMessage = "Incorrect password.";
+      } else if (error.code === "auth/email-already-in-use") {
+        errorMessage = "An account with this email already exists.";
+      } else if (error.code === "auth/weak-password") {
+        errorMessage = "Password should be at least 6 characters.";
+      } else if (error.code === "auth/invalid-email") {
+        errorMessage = "Invalid email address.";
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -159,14 +203,14 @@ const AuthForm = ({ type }: { type: FormType }) => {
             </button>
           </div>
           <button
-            className="w-full py-3 rounded-xl font-bold text-lg text-dark-100 bg-gradient-to-r from-primary-200 to-primary-100 shadow-xl transition-all duration-200 transform hover:scale-105 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-primary-200"
+            className="w-full py-3 rounded-xl font-bold text-lg text-dark-100 bg-gradient-to-r from-primary-200 to-primary-100 shadow-xl transition-all duration-200 transform hover:scale-105 hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-primary-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             type="submit"
-            disabled={form.formState.isSubmitting}
+            disabled={isLoading}
           >
-            {form.formState.isSubmitting ? (
+            {isLoading ? (
               <span className="flex items-center justify-center gap-2">
                 <span className="loader border-2 border-t-2 border-t-white border-blue-400 rounded-full w-4 h-4 animate-spin" />
-                {isSignIn ? "Signing In..." : "Creating..."}
+                {isSignIn ? "Signing In..." : "Creating Account..."}
               </span>
             ) : isSignIn ? "Sign In" : "Create Account"}
           </button>
