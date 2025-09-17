@@ -29,7 +29,8 @@ export async function POST(request: Request) {
     });
 
     // Determine if this is a user-specific interview or a template
-    const isTemplate = !userId || userId === null || userId === "";
+    // Only create templates when explicitly requested (no userId provided)
+    const isTemplate = !userId || userId === null || userId === "" || userId === undefined;
     
     const interview = {
       role: role,
@@ -37,11 +38,11 @@ export async function POST(request: Request) {
       level: level,
       techstack: techstack.split(","),
       questions: JSON.parse(questions),
-      userId: isTemplate ? null : userId, // Use actual user ID if provided
+      userId: isTemplate ? null : userId, // Preserve user ID for user-specific interviews
       finalized: true,
       coverImage: getRandomInterviewCover(),
       createdAt: new Date().toISOString(),
-      template: isTemplate, // Set as template only if no user ID
+      template: isTemplate, // Only set as template if no valid user ID
     };
 
     await db.collection("interviews").add(interview);

@@ -262,7 +262,10 @@ const Agent = ({
         "Content-Type": "application/json",
         Authorization: `Bearer ${idToken}`,
       },
-      body: JSON.stringify(params),
+      body: JSON.stringify({
+        ...params,
+        userId: user.uid, // Include the user ID to prevent null userId
+      }),
     });
     return res.json();
   };
