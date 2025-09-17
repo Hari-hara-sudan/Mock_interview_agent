@@ -162,10 +162,10 @@ export default function TestPage({ params }: { params: Promise<{ testId: string 
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center" style={{ backgroundImage: 'url("/pattern.png")' }}>
+      <div className="min-h-screen bg-background flex items-center justify-center" style={{ backgroundImage: 'url("/pattern.png")' }}>
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary-200 mx-auto mb-4"></div>
-          <p className="text-light-100">Preparing your test...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Preparing your test...</p>
         </div>
       </div>
     );
@@ -173,13 +173,13 @@ export default function TestPage({ params }: { params: Promise<{ testId: string 
 
   if (!test || !attempt || questions.length === 0) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center" style={{ backgroundImage: 'url("/pattern.png")' }}>
+      <div className="min-h-screen bg-background flex items-center justify-center" style={{ backgroundImage: 'url("/pattern.png")' }}>
         <div className="text-center">
           <AlertTriangle className="w-12 h-12 text-destructive-100 mx-auto mb-4" />
-          <p className="text-light-100">Unable to load test. Please try again.</p>
+          <p className="text-muted-foreground">Unable to load test. Please try again.</p>
           <button
             onClick={() => router.push('/aptitude')}
-            className="mt-4 px-6 py-2 bg-dark-200 text-white rounded-lg hover:bg-dark-300"
+            className="mt-4 px-6 py-2 bg-muted text-foreground rounded-lg hover:bg-accent/50"
           >
             Go Back
           </button>
@@ -189,23 +189,23 @@ export default function TestPage({ params }: { params: Promise<{ testId: string 
   }
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a]" style={{ backgroundImage: 'url("/pattern.png")' }}>
+    <div className="min-h-screen bg-background" style={{ backgroundImage: 'url("/pattern.png")' }}>
       {/* Header */}
-      <div className="border-b border-white/10 bg-black/40 backdrop-blur">{/* subtle translucent header */}
+      <div className="border-b border-border/50 bg-background/80 backdrop-blur">{/* subtle translucent header */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-semibold text-white">{test.title}</h1>
-              <p className="text-sm text-light-100">
+              <h1 className="text-xl font-semibold text-foreground">{test.title}</h1>
+              <p className="text-sm text-muted-foreground">
                 {getAnsweredCount()} of {questions.length} questions answered
               </p>
             </div>
             
             <div className="flex items-center space-x-4">
               <div className="text-right">
-                <div className="text-sm text-light-400">Time Remaining</div>
+                <div className="text-sm text-muted-foreground">Time Remaining</div>
                 <div className={`font-mono font-semibold ${
-                  timeRemaining < 300 ? 'text-destructive-100' : 'text-white'
+                  timeRemaining < 300 ? 'text-destructive-100' : 'text-foreground'
                 }`}>
                   {Math.floor(timeRemaining / 60)}:{(timeRemaining % 60).toString().padStart(2, '0')}
                 </div>
@@ -213,7 +213,7 @@ export default function TestPage({ params }: { params: Promise<{ testId: string 
               
               <button
                 onClick={() => setShowConfirmSubmit(true)}
-                className="px-4 py-2 bg-primary-200 text-dark-100 rounded-lg hover:bg-primary-200/80 font-medium"
+                className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 font-medium"
               >
                 Submit Test
               </button>
@@ -222,9 +222,9 @@ export default function TestPage({ params }: { params: Promise<{ testId: string 
           
           {/* Progress Bar */}
           <div className="mt-4">
-            <div className="w-full bg-dark-200 rounded-full h-2 border border-white/10">
+            <div className="w-full bg-muted rounded-full h-2 border border-border/50">
               <div 
-                className="bg-primary-200 h-2 rounded-full transition-all duration-300"
+                className="bg-primary h-2 rounded-full transition-all duration-300"
                 style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
               ></div>
             </div>
@@ -252,14 +252,14 @@ export default function TestPage({ params }: { params: Promise<{ testId: string 
 
       {/* Confirmation Modal */}
       {showConfirmSubmit && (
-        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
-          <div className="dark-gradient rounded-xl p-6 max-w-md mx-4 border border-white/10">
+        <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
+          <div className="rounded-xl p-6 max-w-md mx-4 border border-border/50 bg-card">
             <div className="text-center">
               <CheckCircle className="w-12 h-12 text-success-100 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">
+              <h3 className="text-lg font-semibold text-foreground mb-2">
                 Submit Test?
               </h3>
-              <p className="text-light-100 mb-6">
+              <p className="text-muted-foreground mb-6">
                 You have answered {getAnsweredCount()} out of {questions.length} questions. 
                 Are you sure you want to submit your test?
               </p>
@@ -267,14 +267,14 @@ export default function TestPage({ params }: { params: Promise<{ testId: string 
               <div className="flex space-x-3">
                 <button
                   onClick={() => setShowConfirmSubmit(false)}
-                  className="flex-1 px-4 py-2 bg-dark-200 text-white rounded-lg hover:bg-dark-300"
+                  className="flex-1 px-4 py-2 bg-muted text-foreground rounded-lg hover:bg-accent/50"
                   disabled={submitting}
                 >
                   Continue Test
                 </button>
                 <button
                   onClick={handleFinishTest}
-                  className="flex-1 px-4 py-2 bg-primary-200 text-dark-100 rounded-lg hover:bg-primary-200/80 disabled:opacity-50"
+                  className="flex-1 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:opacity-90 disabled:opacity-50"
                   disabled={submitting}
                 >
                   {submitting ? 'Submitting...' : 'Submit Test'}

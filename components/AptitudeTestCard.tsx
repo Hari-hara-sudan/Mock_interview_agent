@@ -36,11 +36,11 @@ export default function AptitudeTestCard({ test, onStartTest, userAttempts = 0 }
   };
 
   return (
-    <div className="dark-gradient rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden border border-white/10 group">
+    <div className="rounded-2xl border border-border/50 bg-card shadow-soft hover:shadow-medium transition-all duration-300 overflow-hidden group">
       {/* Header with difficulty badge */}
       <div className="relative p-6 pb-4">
         <div className="flex items-start justify-between mb-3">
-          <h3 className="text-xl font-bold text-white group-hover:text-primary-200 transition-colors">
+          <h3 className="text-xl font-bold text-foreground group-hover:text-primary transition-colors">
             {test.title}
           </h3>
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${getDifficultyColor(test.difficulty)}`}>
@@ -48,14 +48,14 @@ export default function AptitudeTestCard({ test, onStartTest, userAttempts = 0 }
           </span>
         </div>
         
-        <p className="text-light-100 text-sm leading-relaxed mb-4">
+  <p className="text-muted-foreground text-sm leading-relaxed mb-4">
           {test.description}
         </p>
 
         {/* Categories */}
         <div className="mb-4">
-          <p className="text-xs text-light-400 mb-1">Categories</p>
-          <p className="text-sm text-light-100 font-medium">
+          <p className="text-xs text-muted-foreground mb-1">Categories</p>
+          <p className="text-sm text-foreground font-medium">
             {getCategoryDisplay(test.categories)}
           </p>
         </div>
@@ -67,8 +67,8 @@ export default function AptitudeTestCard({ test, onStartTest, userAttempts = 0 }
               <Users className="w-4 h-4 text-primary-200" />
             </div>
             <div>
-              <p className="text-xs text-light-400">Questions</p>
-              <p className="text-sm font-semibold text-white">{totalQuestions}</p>
+              <p className="text-xs text-muted-foreground">Questions</p>
+              <p className="text-sm font-semibold text-foreground">{totalQuestions}</p>
             </div>
           </div>
 
@@ -77,8 +77,8 @@ export default function AptitudeTestCard({ test, onStartTest, userAttempts = 0 }
               <Clock className="w-4 h-4 text-primary-200" />
             </div>
             <div>
-              <p className="text-xs text-light-400">Duration</p>
-              <p className="text-sm font-semibold text-white">{test.timeLimit}m</p>
+              <p className="text-xs text-muted-foreground">Duration</p>
+              <p className="text-sm font-semibold text-foreground">{test.timeLimit}m</p>
             </div>
           </div>
 
@@ -87,16 +87,16 @@ export default function AptitudeTestCard({ test, onStartTest, userAttempts = 0 }
               <Trophy className="w-4 h-4 text-success-100" />
             </div>
             <div>
-              <p className="text-xs text-light-400">Pass Score</p>
-              <p className="text-sm font-semibold text-white">{test.passingScore}%</p>
+              <p className="text-xs text-muted-foreground">Pass Score</p>
+              <p className="text-sm font-semibold text-foreground">{test.passingScore}%</p>
             </div>
           </div>
         </div>
 
         {/* Attempts */}
         {userAttempts > 0 && (
-          <div className="mb-4 p-3 bg-dark-200 rounded-lg">
-            <p className="text-sm text-light-100">
+          <div className="mb-4 p-3 bg-accent/40 rounded-lg">
+            <p className="text-sm text-foreground">
               <span className="font-medium">{userAttempts}</span> attempt{userAttempts !== 1 ? 's' : ''} completed
             </p>
           </div>
@@ -107,7 +107,7 @@ export default function AptitudeTestCard({ test, onStartTest, userAttempts = 0 }
       <div className="px-6 pb-6">
         <button
           onClick={handleStartTest}
-          className="w-full blue-gradient-dark hover:opacity-90 text-white font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 group-hover:scale-105"
+          className="w-full bg-primary text-primary-foreground hover:opacity-90 font-semibold py-3 px-4 rounded-xl transition-all duration-300 flex items-center justify-center space-x-2 group-hover:scale-105"
         >
           <Play className="w-4 h-4" />
           <span>Start Test</span>

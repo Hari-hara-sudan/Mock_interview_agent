@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 import { cn } from "@/lib/utils";
@@ -59,7 +59,15 @@ const Agent = ({
   const workflowId = process.env.NEXT_PUBLIC_VAPI_WORKFLOW_ID!;
   const assistantId = process.env.NEXT_PUBLIC_VAPI_ASSISTANT_ID!;
 
-  const vapi = new Vapi(process.env.NEXT_PUBLIC_VAPI_WEB_TOKEN!);
+  // Hold a single Vapi instance across renders
+  const vapiRef = useRef<Vapi | null>(null);
+  if (!vapiRef.current && typeof window !== "undefined") {
+    try {
+      vapiRef.current = new Vapi(process.env.NEXT_PUBLIC_VAPI_WEB_TOKEN!);
+    } catch (e) {
+      console.error("Failed to initialize Vapi", e);
+    }
+  }
 
   useEffect(() => {
     const onCallStart = () => {
@@ -101,6 +109,13 @@ const Agent = ({
         }
         return; // Suppress console log for expected ejection
       }
+      // Downgrade noisy Daily transport disconnects to a soft hint
+      const rawMsg = (error?.errorMsg || error?.message || "") as string;
+      if (rawMsg.toLowerCase().includes("send transport changed to disconnected")) {
+        setErrorMessage("Connection dropped. Please try again or check your network.");
+        setCallStatus(CallStatus.INACTIVE);
+        return;
+      }
       
       // Log other errors but don't show them to user unless they're significant
       console.error("VAPI Error:", error);
@@ -113,6 +128,9 @@ const Agent = ({
       setErrorMessage(message);
     };
 
+    const vapi = vapiRef.current;
+    if (!vapi) return;
+
     vapi.on("call-start", onCallStart);
     vapi.on("call-end", onCallEnd);
     vapi.on("message", onMessage);
@@ -120,13 +138,33 @@ const Agent = ({
     vapi.on("speech-end", onSpeechEnd);
     vapi.on("error", onError);
 
+    // Stop call on tab close or when page is hidden for a while
+    const handleBeforeUnload = () => {
+      try { vapi.stop(); } catch {}
+    };
+    const handleVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        try { vapi.stop(); } catch {}
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    document.addEventListener("visibilitychange", handleVisibility);
+
     return () => {
-      vapi.off("call-start", onCallStart);
-      vapi.off("call-end", onCallEnd);
-      vapi.off("message", onMessage);
-      vapi.off("speech-start", onSpeechStart);
-      vapi.off("speech-end", onSpeechEnd);
-      vapi.off("error", onError);
+      try {
+        vapi.off("call-start", onCallStart);
+        vapi.off("call-end", onCallEnd);
+        vapi.off("message", onMessage);
+        vapi.off("speech-start", onSpeechStart);
+        vapi.off("speech-end", onSpeechEnd);
+        vapi.off("error", onError);
+        // Ensure the transport is torn down cleanly
+        vapi.stop();
+      } catch {}
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      // release instance after cleanup
+      vapiRef.current = null;
     };
   }, []);
 
@@ -135,7 +173,7 @@ const Agent = ({
       setLastMessage(messages[messages.length - 1].content);
     }
 
-    const handleGenerateFeedback = async (messages: SavedMessage[]) => {
+  const handleGenerateFeedback = async (messages: SavedMessage[]) => {
       // Updated prompt: instruct AI to return at most 5 categoryScores
       const feedbackPrompt = `
         Analyze the following interview transcript and generate feedback for the candidate.
@@ -180,8 +218,12 @@ const Agent = ({
 
   const handleCall = async () => {
     if (shouldBlockVapi) return; // Block VAPI if guard triggers
+    if (callStatus === CallStatus.CONNECTING || callStatus === CallStatus.ACTIVE) return;
+    setErrorMessage("");
     setCallStatus(CallStatus.CONNECTING);
     try {
+      const vapi = vapiRef.current;
+      if (!vapi) throw new Error("Voice client not initialized");
       // Use the interview assistant if questions are present, else use the generator assistant
       const assistantId = questions && questions.length > 0
         ? process.env.NEXT_PUBLIC_VAPI_INTERVIEW_ASSISTANT_ID!
@@ -206,7 +248,7 @@ const Agent = ({
 
   const handleDisconnect = () => {
     setCallStatus(CallStatus.FINISHED);
-    vapi.stop();
+    try { vapiRef.current?.stop(); } catch {}
   };
 
   // Add a function to generate interview (example, place this where you handle interview generation)
@@ -229,41 +271,48 @@ const Agent = ({
     <>
       <div className="call-view gap-8">
         {/* AI Interviewer Card */}
-        <div className="flex-1 flex flex-col items-center justify-center bg-[#18181b] border border-[#232323] rounded-2xl shadow-lg p-8 min-h-[320px]">
+        <div className="flex-1 flex flex-col items-center justify-center bg-card border border-border/50 rounded-2xl shadow-soft p-8 min-h-[320px]">
           <div className="avatar mb-4">
             <Image
               src="/ai-avatar.png"
               alt="AI Avatar"
               width={80}
               height={80}
-              className="object-cover rounded-full border-2 border-[#232323] bg-[#232323]"
+              className="object-cover rounded-full border-2 border-border/50 bg-muted"
             />
             {isSpeaking && <span className="animate-speak" />}
           </div>
-          <h3 className="text-lg font-bold text-white">AI Interviewer</h3>
+          <h3 className="text-lg font-bold text-foreground">AI Interviewer</h3>
         </div>
 
-        {/* User Card */}
-        <div className="flex-1 flex flex-col items-center justify-center bg-[#18181b] border border-[#232323] rounded-2xl shadow-lg p-8 min-h-[320px]">
-          <Image
-            src="/user-avatar.png"
-            alt="User Avatar"
-            width={80}
-            height={80}
-            className="rounded-full object-cover border-2 border-[#232323] bg-[#232323]"
-          />
-          <h3 className="text-lg font-bold text-white mt-4">{userName}</h3>
+        {/* User Card with Camera */}
+        <div className="flex-1 flex flex-col items-center justify-center bg-card border border-border/50 rounded-2xl shadow-soft p-8 min-h-[320px] overflow-hidden">
+          <div className="flex items-center justify-center w-full h-full">
+            <div className="text-center">
+              <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4 mx-auto">
+                <Image
+                  src="/user-avatar.png"
+                  alt="User Avatar"
+                  width={60}
+                  height={60}
+                  className="rounded-full"
+                />
+              </div>
+              <h3 className="text-lg font-bold text-foreground">{userName}</h3>
+              <p className="text-sm text-muted-foreground">Interviewee</p>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* Transcript/Status Bar */}
       {(errorMessage || messages.length > 0 || partialTranscript) && (
         <div className="w-full flex justify-center mt-8">
-          <div className="w-full max-w-2xl bg-[#232323] bg-opacity-80 rounded-full px-8 py-4 shadow text-center text-lg text-white font-medium">
+          <div className="w-full max-w-2xl bg-muted rounded-full px-8 py-4 shadow text-center text-lg text-foreground font-medium">
             {errorMessage ? (
               <span className="text-red-400">{errorMessage}</span>
             ) : partialTranscript ? (
-              <span className="text-blue-400 animate-pulse">{partialTranscript}</span>
+              <span className="text-primary animate-pulse">{partialTranscript}</span>
             ) : messages.length > 0 ? (
               <span>{lastMessage}</span>
             ) : null}
@@ -278,14 +327,14 @@ const Agent = ({
         )}
         {callStatus === "INACTIVE" || callStatus === "FINISHED" ? (
           <button
-            className="px-10 py-3 rounded-full bg-green-500 text-white text-lg font-bold shadow-lg hover:bg-green-600 transition"
+            className="px-10 py-3 rounded-full bg-success-100 text-white text-lg font-bold shadow-lg hover:opacity-90 transition"
             onClick={handleCall}
           >
             Call
           </button>
         ) : callStatus === "CONNECTING" ? (
           <button
-            className="px-10 py-3 rounded-full bg-blue-600 text-white text-lg font-bold shadow-lg flex items-center gap-2 cursor-not-allowed opacity-80"
+            className="px-10 py-3 rounded-full bg-primary text-primary-foreground text-lg font-bold shadow-lg flex items-center gap-2 cursor-not-allowed opacity-80"
             disabled
           >
             <span className="loader border-2 border-t-2 border-t-white border-blue-400 rounded-full w-5 h-5 animate-spin" />
@@ -293,7 +342,7 @@ const Agent = ({
           </button>
         ) : (
           <button
-            className="px-10 py-3 rounded-full bg-red-600 text-white text-lg font-bold shadow-lg hover:bg-red-700 transition"
+            className="px-10 py-3 rounded-full bg-destructive text-destructive-foreground text-lg font-bold shadow-lg hover:opacity-90 transition"
             onClick={handleDisconnect}
           >
             End

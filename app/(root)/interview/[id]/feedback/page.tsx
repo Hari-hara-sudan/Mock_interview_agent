@@ -9,6 +9,7 @@ import {
 } from "@/lib/actions/general.action";
 import { Button } from "@/components/ui/button";
 import { getCurrentUser } from "@/lib/actions/auth.action";
+import { RouteParams } from "@/types";
 
 const Feedback = async ({ params }: RouteParams) => {
   const { id } = await params;
