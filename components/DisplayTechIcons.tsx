@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 
 import { cn, getTechLogos } from "@/lib/utils";
+import { TechIconProps } from "@/types";
 
 const DisplayTechIcons = ({ techStack }: TechIconProps) => {
   const [techIcons, setTechIcons] = useState<{ tech: string; url: string }[]>([]);

@@ -1,6 +1,6 @@
 import { getCurrentUser } from "@/lib/actions/auth.action";
 import { redirect } from "next/navigation";
-import ChallengeCard from "@/components/ChallengeCard";
+import ChallengeListItem from "@/components/ChallengeListItem";
 import { Challenge } from "@/types/index";
 
 // Mock data for now - later we'll fetch from Firestore
@@ -185,73 +185,69 @@ const ChallengesPage = async () => {
   }
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4">Programming Challenges</h1>
-          <p className="text-gray-400 text-lg">
-            Practice coding with voice explanations, AI debugging, and performance optimization challenges.
-          </p>
+    <div className="min-h-screen">
+      <div className="bg-background border-b border-border/50">
+        <div className="max-w-7xl mx-auto px-4 py-6">
+          <h1 className="text-2xl font-bold text-foreground">Coding Challenges</h1>
         </div>
+      </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-4 mb-8">
-          <select className="px-4 py-2 bg-[#232323] border border-[#333] rounded-lg text-white">
-            <option value="">All Difficulties</option>
-            <option value="easy">Easy</option>
-            <option value="medium">Medium</option>
-            <option value="hard">Hard</option>
-          </select>
-          
-          <select className="px-4 py-2 bg-[#232323] border border-[#333] rounded-lg text-white">
-            <option value="">All Types</option>
-            <option value="explain-before-code">Voice + Code</option>
-            <option value="voice-debugging">Debug Coach</option>
-            <option value="code-review">Code Review</option>
-            <option value="black-box-contract">Contract Test</option>
-            <option value="performance-tuning">Performance</option>
-          </select>
+      <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-[320px_1fr] gap-6">
+        {/* Sidebar */}
+        <aside className="space-y-6">
+          {/* Your Progress */}
+          <div className="rounded-2xl border border-border bg-card">
+            <div className="p-6">
+              <div className="font-semibold text-foreground mb-3">Your Progress</div>
+              <ul className="space-y-2 text-sm">
+                <li className="flex justify-between"><span className="text-muted-foreground">Solved</span><span className="text-emerald-600 font-semibold">0/150</span></li>
+                <li className="flex justify-between"><span className="text-muted-foreground">Attempted</span><span className="text-amber-600 font-semibold">0/150</span></li>
+                <li className="flex justify-between"><span className="text-muted-foreground">Easy</span><span className="text-emerald-600 font-semibold">0/65</span></li>
+                <li className="flex justify-between"><span className="text-muted-foreground">Medium</span><span className="text-amber-600 font-semibold">0/60</span></li>
+                <li className="flex justify-between"><span className="text-muted-foreground">Hard</span><span className="text-rose-600 font-semibold">0/25</span></li>
+              </ul>
+            </div>
+          </div>
 
-          <select className="px-4 py-2 bg-[#232323] border border-[#333] rounded-lg text-white">
-            <option value="">All Languages</option>
-            <option value="javascript">JavaScript</option>
-            <option value="python">Python</option>
-            <option value="java">Java</option>
-            <option value="cpp">C++</option>
-          </select>
-        </div>
+          {/* Categories */}
+          <div className="rounded-2xl border border-border bg-card">
+            <div className="p-6">
+              <div className="font-semibold text-foreground mb-3">Categories</div>
+              <ul className="space-y-3 text-sm text-muted-foreground">
+                <li className="flex items-center justify-between"><span>Arrays</span><span>--</span></li>
+                <li className="flex items-center justify-between"><span>Strings</span><span>--</span></li>
+                <li className="flex items-center justify-between"><span>Dynamic Programming</span><span>--</span></li>
+                <li className="flex items-center justify-between"><span>Trees</span><span>--</span></li>
+                <li className="flex items-center justify-between"><span>Graphs</span><span>--</span></li>
+                <li className="flex items-center justify-between"><span>Linked Lists</span><span>--</span></li>
+              </ul>
+            </div>
+          </div>
+        </aside>
 
-        {/* Challenges Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockChallenges.map((challenge) => (
-            <ChallengeCard
-              key={challenge.id}
-              challenge={challenge}
-              // progress={challengeProgress[challenge.id]} // TODO: fetch user progress
+        {/* Main List */}
+        <section>
+          {/* Search + Filters */}
+          <div className="rounded-2xl border border-border bg-card p-4 flex flex-wrap items-center gap-3 mb-6">
+            <input
+              className="flex-1 min-w-[220px] px-4 py-2 rounded-xl border border-border bg-background text-sm"
+              placeholder="Search challenges..."
             />
-          ))}
-        </div>
+            <button className="px-4 py-2 rounded-xl border border-border text-sm bg-background">Filter</button>
+            <button className="px-4 py-2 rounded-xl border border-border text-sm bg-background">Difficulty</button>
+            <button className="px-4 py-2 rounded-xl border border-border text-sm bg-background">Company</button>
+          </div>
 
-        {/* Stats */}
-        <div className="mt-12 grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-[#18181b] border border-[#232323] rounded-xl p-6 text-center">
-            <div className="text-3xl font-bold text-green-400 mb-2">0</div>
-            <div className="text-gray-400">Completed</div>
+          <div className="space-y-4">
+            {mockChallenges.map((c) => (
+              <ChallengeListItem key={c.id} challenge={c} />
+            ))}
           </div>
-          <div className="bg-[#18181b] border border-[#232323] rounded-xl p-6 text-center">
-            <div className="text-3xl font-bold text-blue-400 mb-2">0</div>
-            <div className="text-gray-400">In Progress</div>
+
+          <div className="flex justify-center mt-8">
+            <button className="px-5 py-3 rounded-2xl border border-border bg-white text-foreground shadow-sm">Load More Challenges</button>
           </div>
-          <div className="bg-[#18181b] border border-[#232323] rounded-xl p-6 text-center">
-            <div className="text-3xl font-bold text-yellow-400 mb-2">--</div>
-            <div className="text-gray-400">Avg Score</div>
-          </div>
-          <div className="bg-[#18181b] border border-[#232323] rounded-xl p-6 text-center">
-            <div className="text-3xl font-bold text-purple-400 mb-2">0</div>
-            <div className="text-gray-400">Total Attempts</div>
-          </div>
-        </div>
+        </section>
       </div>
     </div>
   );

@@ -17,16 +17,17 @@ export function middleware(request: NextRequest) {
   const sessionCookie = request.cookies.get('session')?.value;
   
   // Define public routes that don't require authentication
-  const publicRoutes = ['/sign-in', '/sign-up'];
+  const publicRoutes = ['/', '/sign-in', '/sign-up'];
   const isPublicRoute = publicRoutes.includes(pathname);
+  const isAuthPage = pathname === '/sign-in' || pathname === '/sign-up';
   
   // If user is trying to access a protected route without session, redirect to sign-in
   if (!isPublicRoute && !sessionCookie) {
     return NextResponse.redirect(new URL('/sign-in', request.url));
   }
   
-  // If user is on sign-in/sign-up page but already has session, redirect to home
-  if (isPublicRoute && sessionCookie) {
+  // If user is on an auth page (sign-in/sign-up) but already has session, redirect to home
+  if (isAuthPage && sessionCookie) {
     return NextResponse.redirect(new URL('/', request.url));
   }
   

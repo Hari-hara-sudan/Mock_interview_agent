@@ -4,13 +4,14 @@ import { getAptitudeAttempt, getAptitudeTestById } from '@/lib/actions/aptitude.
 import AptitudeResults from '@/components/AptitudeResults';
 
 interface ResultsPageProps {
-  params: {
+  params: Promise<{
     attemptId: string;
-  };
+  }>;
 }
 
 export default async function ResultsPage({ params }: ResultsPageProps) {
-  const attempt = await getAptitudeAttempt(params.attemptId);
+  const { attemptId } = await params;
+  const attempt = await getAptitudeAttempt(attemptId);
   
   if (!attempt) {
     redirect('/aptitude');

@@ -197,3 +197,47 @@ export async function POST(request: NextRequest) {
     }, { status: 500 });
   }
 }
+
+// Idempotent ensure: seeds sample questions and tests if collections are empty
+export async function GET(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const ensure = searchParams.get('ensure');
+    if (!ensure) {
+      return NextResponse.json({ success: false, message: 'Pass ?ensure=1 to seed if empty' }, { status: 400 });
+    }
+
+    // Check if there is at least one question and one test
+    const [qSnap, tSnap] = await Promise.all([
+      db.collection('aptitudeQuestions').limit(1).get(),
+      db.collection('aptitudeTests').limit(1).get(),
+    ]);
+
+    let seeded = { questions: false, tests: false };
+
+    if (qSnap.empty) {
+      const batch = db.batch();
+      for (const q of sampleQuestions) {
+        const ref = db.collection('aptitudeQuestions').doc();
+        batch.set(ref, { ...q, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+      }
+      await batch.commit();
+      seeded.questions = true;
+    }
+
+    if (tSnap.empty) {
+      const batch = db.batch();
+      for (const t of sampleTests) {
+        const ref = db.collection('aptitudeTests').doc();
+        batch.set(ref, { ...t, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+      }
+      await batch.commit();
+      seeded.tests = true;
+    }
+
+    return NextResponse.json({ success: true, seeded });
+  } catch (error) {
+    console.error('Error ensuring aptitude seed:', error);
+    return NextResponse.json({ success: false, message: 'Failed to ensure seed' }, { status: 500 });
+  }
+}

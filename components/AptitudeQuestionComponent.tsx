@@ -49,10 +49,10 @@ export default function AptitudeQuestionComponent({
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case 'easy': return 'bg-success-100/20 text-success-100 border border-success-100/40';
-      case 'medium': return 'bg-primary-200/10 text-primary-200 border border-primary-200/30';
-      case 'hard': return 'bg-destructive-100/20 text-destructive-100 border border-destructive-100/40';
-      default: return 'bg-dark-200 text-light-100 border border-white/10';
+      case 'easy': return 'bg-gradient-to-r from-green-100/20 to-emerald-100/20 text-green-700 border border-green-200/40';
+      case 'medium': return 'bg-gradient-to-r from-[hsl(262,83%,58%)]/10 to-[hsl(316,70%,68%)]/10 border border-[hsl(262,83%,58%)]/30';
+      case 'hard': return 'bg-gradient-to-r from-red-100/20 to-rose-100/20 text-red-700 border border-red-200/40';
+      default: return 'bg-gradient-to-r from-muted/20 to-muted/20 text-muted-foreground border border-border/30';
     }
   };
 
@@ -63,18 +63,26 @@ export default function AptitudeQuestionComponent({
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 dark-gradient rounded-2xl border border-white/10">
+    <div className="max-w-4xl mx-auto p-6 rounded-2xl border border-border/50 bg-card">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
+      <div className="flex items-center justify-between mb-6 pb-4 border-b border-border/50">
         <div className="flex items-center space-x-4">
-          <span className="text-sm font-medium text-light-100">
+          <span className="text-sm font-medium text-muted-foreground">
             Question {questionNumber} of {totalQuestions}
           </span>
           <span className={`px-3 py-1 rounded-full text-xs font-medium ${getDifficultyColor(question.difficulty)}`}>
-            {question.difficulty}
+            {question.difficulty === 'medium' ? (
+              <span className="text-transparent bg-gradient-to-r from-[hsl(262,83%,58%)] to-[hsl(316,70%,68%)] bg-clip-text font-semibold">
+                {question.difficulty}
+              </span>
+            ) : (
+              question.difficulty
+            )}
           </span>
-          <span className="px-3 py-1 rounded-full text-xs font-medium bg-primary-200 text-dark-100">
-            {formatCategory(question.category)}
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-[hsl(262,83%,58%)]/10 to-[hsl(316,70%,68%)]/10 border border-[hsl(262,83%,58%)]/30">
+            <span className="text-transparent bg-gradient-to-r from-[hsl(262,83%,58%)] to-[hsl(316,70%,68%)] bg-clip-text font-semibold">
+              {formatCategory(question.category)}
+            </span>
           </span>
         </div>
         
@@ -84,7 +92,7 @@ export default function AptitudeQuestionComponent({
             className={`p-2 rounded-lg transition-colors border ${
               isFlagged 
                 ? 'bg-warning-100/20 text-warning-100 border-warning-100/40' 
-                : 'bg-dark-200 text-light-100 border-white/10 hover:bg-dark-300 hover:text-warning-100'
+                : 'bg-muted text-foreground border-border/50 hover:bg-accent/50 hover:text-warning-100'
             }`}
             title={isFlagged ? 'Remove flag' : 'Flag question'}
           >
@@ -102,7 +110,7 @@ export default function AptitudeQuestionComponent({
 
       {/* Question */}
       <div className="mb-8">
-        <h2 className="text-xl font-semibold text-white leading-relaxed mb-6">
+        <h2 className="text-xl font-semibold text-foreground leading-relaxed mb-6">
           {question.question}
         </h2>
 
@@ -113,22 +121,22 @@ export default function AptitudeQuestionComponent({
               key={index}
               className={`block p-4 rounded-xl border-2 cursor-pointer transition-all duration-200 ${
                 selectedAnswer === index
-                  ? 'border-primary-200 bg-primary-200/10 shadow-md text-white'
-                  : 'border-white/10 bg-dark-200 text-light-100 hover:border-white/20 hover:bg-dark-300'
+                  ? 'border-[hsl(262,83%,58%)] bg-gradient-to-r from-[hsl(262,83%,58%)]/10 to-[hsl(316,70%,68%)]/10 shadow-md text-foreground'
+                  : 'border-border/50 bg-muted text-foreground hover:border-[hsl(262,83%,58%)]/30 hover:bg-accent/50'
               }`}
             >
               <div className="flex items-center space-x-3">
                 <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
                   selectedAnswer === index
-                    ? 'border-primary-200 bg-primary-200'
-                    : 'border-light-400'
+                    ? 'border-[hsl(262,83%,58%)] bg-gradient-to-r from-[hsl(262,83%,58%)] to-[hsl(316,70%,68%)]'
+                    : 'border-border'
                 }`}>
                   {selectedAnswer === index && (
-                    <div className="w-2 h-2 rounded-full bg-dark-100"></div>
+                    <div className="w-2 h-2 rounded-full bg-background"></div>
                   )}
                 </div>
                 <span className={`text-sm font-medium ${
-                  selectedAnswer === index ? 'text-white' : 'text-light-100'
+                  selectedAnswer === index ? 'text-foreground' : 'text-muted-foreground'
                 }`}>
                   {String.fromCharCode(65 + index)}. {option}
                 </span>
@@ -147,31 +155,31 @@ export default function AptitudeQuestionComponent({
       </div>
 
       {/* Navigation */}
-      <div className="flex items-center justify-between pt-6 border-t border-white/10">
+      <div className="flex items-center justify-between pt-6 border-t border-border/50">
         <button
           onClick={onPrevious}
           disabled={isFirstQuestion}
           className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-colors ${
             isFirstQuestion
-              ? 'bg-dark-200 text-light-400 cursor-not-allowed'
-              : 'bg-dark-200 text-white hover:bg-dark-300'
+              ? 'bg-muted text-muted-foreground cursor-not-allowed'
+              : 'bg-muted text-foreground hover:bg-accent/50'
           }`}
         >
           <ChevronLeft className="w-4 h-4" />
           <span>Previous</span>
         </button>
 
-        <div className="text-sm text-light-400">
+        <div className="text-sm text-muted-foreground">
           {selectedAnswer !== null ? 'Answer selected' : 'Select an answer to continue'}
         </div>
 
         <button
           onClick={onNext}
           disabled={selectedAnswer === null}
-          className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-colors ${
+          className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-medium transition-all ${
             selectedAnswer === null
-              ? 'bg-dark-200 text-light-400 cursor-not-allowed'
-              : 'bg-primary-200 text-dark-100 hover:bg-primary-200/80'
+              ? 'bg-muted text-muted-foreground cursor-not-allowed'
+              : 'bg-gradient-to-r from-[hsl(262,83%,58%)] to-[hsl(316,70%,68%)] text-white hover:shadow-lg hover:scale-105'
           }`}
         >
           <span>{isLastQuestion ? 'Finish' : 'Next'}</span>
