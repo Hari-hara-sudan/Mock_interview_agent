@@ -3,6 +3,8 @@ import { db } from "@/firebase/admin";
 
 export async function POST(req: NextRequest) {
   const { interviewId, userId } = await req.json();
+  console.log("🔄 [INTERVIEW ATTEMPT] Called with:", { interviewId, userId });
+  
   // Ensure userId is a real UID, not a display name
   if (!userId || userId.length < 20) {
     return Response.json({ success: false, error: "Invalid userId. Must be a real UID." });
@@ -16,9 +18,14 @@ export async function POST(req: NextRequest) {
     
     const originalInterview = interviewDoc.data();
     
-    // Create a new interview for the user
+    // Create a new interview for the user (exclude template field)
     const newInterview = {
-      ...originalInterview,
+      role: originalInterview?.role,
+      type: originalInterview?.type,
+      level: originalInterview?.level,
+      techstack: originalInterview?.techstack,
+      questions: originalInterview?.questions,
+      coverImage: originalInterview?.coverImage,
       userId,
       createdAt: new Date().toISOString(),
       finalized: false,

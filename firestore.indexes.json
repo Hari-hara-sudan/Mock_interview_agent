@@ -1,67 +1,11 @@
 {
   "indexes": [
     {
-      "collectionGroup": "aptitudeTests",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "isActive",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "createdAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "aptitudeQuestions",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "category",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "aptitudeAttempts",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "userId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "startedAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "interviews",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "template",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "createdAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
       "collectionGroup": "interviews",
       "queryScope": "COLLECTION",
       "fields": [
         {
           "fieldPath": "userId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "template",
           "order": "ASCENDING"
         },
         {
@@ -127,7 +71,7 @@
       ]
     },
     {
-      "collectionGroup": "submissions",
+      "collectionGroup": "aptitudeAttempts",
       "queryScope": "COLLECTION",
       "fields": [
         {
@@ -135,25 +79,7 @@
           "order": "ASCENDING"
         },
         {
-          "fieldPath": "challengeId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "submittedAt",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "submissions",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "challengeId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "submittedAt",
+          "fieldPath": "startedAt",
           "order": "DESCENDING"
         }
       ]

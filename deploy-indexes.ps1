@@ -31,7 +31,7 @@ Write-Host "📋 Deployed indexes for collections:" -ForegroundColor Cyan
 Write-Host "   - aptitudeTests (isActive + createdAt)" -ForegroundColor White
 Write-Host "   - aptitudeQuestions (category)" -ForegroundColor White
 Write-Host "   - aptitudeAttempts (userId + startedAt)" -ForegroundColor White
-Write-Host "   - interviews (template + createdAt, userId + template + createdAt)" -ForegroundColor White
+Write-Host "   - interviews (userId + createdAt)" -ForegroundColor White
 Write-Host "   - feedback (interviewId + userId)" -ForegroundColor White
 Write-Host "   - challenges (difficulty/type + createdAt, supportedLanguages + createdAt)" -ForegroundColor White
 Write-Host "   - submissions (userId + challengeId + submittedAt, challengeId + submittedAt, userId + submittedAt)" -ForegroundColor White
