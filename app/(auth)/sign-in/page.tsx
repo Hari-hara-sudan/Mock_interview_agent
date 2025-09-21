@@ -1,6 +1,9 @@
 import AuthForm from "@/components/AuthForm";
 import Link from "next/link";
 
+// Force dynamic rendering for authentication
+export const dynamic = 'force-dynamic';
+
 const Page = () => {
   return (
     <div className="w-full max-w-xl mx-auto">

@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/actions/auth.action";
-import { getInterviewsByUserId, getLatestInterviews } from "@/lib/actions/general.action";
+import { getInterviewsByUserId } from "@/lib/actions/general.action";
 import { getAllFeedbacksByInterviewId } from "@/lib/actions/getAllFeedbacksByInterviewId";
 import { Cpu, MessageSquare, Brain, Star } from "lucide-react";
+
+// Force dynamic rendering for authentication
+export const dynamic = 'force-dynamic';
 
 function timeAgo(input?: any) {
   if (!input) return "";
@@ -33,9 +36,8 @@ function timeAgo(input?: any) {
 const Page = async () => {
   const user = await getCurrentUser();
 
-  // Fetch user interviews and templates
+  // Fetch only user interviews
   const interviews = user?.id ? await getInterviewsByUserId(user.id) : [];
-  const templates = await getLatestInterviews({ limit: 6 });
   const recent = user?.id
     ? await Promise.all(
         (interviews || [])
@@ -118,56 +120,11 @@ const Page = async () => {
               </div>
             </div>
 
-            {/* Available Interviews (Templates) */}
-            <div>
-              <div className="flex items-center justify-between mb-3">
-                <h4 className="text-lg font-semibold">Available Interviews</h4>
-              </div>
-              {templates && templates.length > 0 ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {templates.map((t: any) => {
-                    const type = (t.type || "Technical") as string;
-                    const Icon = type.toLowerCase().includes("behavior")
-                      ? MessageSquare
-                      : type.toLowerCase().includes("design")
-                      ? Brain
-                      : Cpu;
-                    return (
-                      <Link
-                        key={t.id}
-                        href={`/interview/new?role=${encodeURIComponent(t.role || "Software Engineer")}&level=${encodeURIComponent(t.level || "Mid-level")}&type=${encodeURIComponent(type)}&techstack=${encodeURIComponent((t.techstack || []).join(", "))}&amount=5`}
-                        className="block"
-                      >
-                        <div className="rounded-xl border border-border/50 bg-background/60 p-5 hover:bg-card-hover transition">
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="text-xs px-2 py-1 rounded-full border">{t.level || "Mid-level"}</span>
-                            <Icon className="w-5 h-5 text-primary" />
-                          </div>
-                          <div className="font-semibold">{t.role || "Interview"}</div>
-                          <p className="text-sm text-muted-foreground mt-1">{type}</p>
-                          {t.techstack && t.techstack.length > 0 && (
-                            <div className="mt-2 flex flex-wrap gap-1">
-                              {t.techstack.slice(0, 4).map((tech: string) => (
-                                <span key={tech} className="px-2 py-0.5 text-xs rounded border">{tech}</span>
-                              ))}
-                            </div>
-                          )}
-                          <div className="mt-3 text-xs text-muted-foreground">45-60 min</div>
-                        </div>
-                      </Link>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-sm text-muted-foreground">No templates available.</div>
-              )}
-            </div>
-
             {/* Your Interviews (Grid) */}
             <div>
               <div className="flex items-center justify-between mb-3">
                 <h4 className="text-lg font-semibold">Your Interviews</h4>
-                <Link href="/profile" className="text-sm text-primary hover:underline">View all</Link>
+                <Link href="/interview/new" className="text-sm text-primary hover:underline">Create new</Link>
               </div>
               {interviews && interviews.length > 0 ? (
                 <div className="grid gap-4 md:grid-cols-2">
@@ -207,7 +164,15 @@ const Page = async () => {
                   ))}
                 </div>
               ) : (
-                <div className="text-sm text-muted-foreground">No interviews yet.</div>
+                <div className="text-center py-8">
+                  <div className="text-muted-foreground mb-4">No interviews yet.</div>
+                  <Link 
+                    href="/interview/new" 
+                    className="inline-flex items-center px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition"
+                  >
+                    Create Your First Interview
+                  </Link>
+                </div>
               )}
             </div>
           </div>

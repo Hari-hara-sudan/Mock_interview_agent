@@ -8,7 +8,7 @@ Your Firestore database needs these collections:
 
 ### Core Collections
 - **users** - User profiles and authentication data
-- **interviews** - Generated interview questions and templates
+- **interviews** - Generated interview questions for users
 - **feedback** - Interview feedback and scores
 - **messages** - Interview transcripts and conversations
 
@@ -66,8 +66,7 @@ firebase deploy --only firestore:indexes
 - `aptitudeAttempts`: `userId` + `startedAt` (DESC)
 
 ### Interview System Indexes
-- `interviews`: `template` + `createdAt` (DESC)
-- `interviews`: `userId` + `template` + `createdAt` (DESC)
+- `interviews`: `userId` + `createdAt` (DESC)
 - `feedback`: `interviewId` + `userId`
 
 ### Challenge System Indexes
@@ -100,7 +99,7 @@ The challenges are seeded from the static data in your training pages.
 Make sure your Firestore security rules allow authenticated users to:
 - Read/write their own data in `users`, `aptitudeAttempts`, `submissions`
 - Read public data from `aptitudeTests`, `aptitudeQuestions`, `challenges`
-- Read template interviews where `template == true`
+- Read their own interviews
 
 Example security rules:
 ```javascript
@@ -127,13 +126,10 @@ service cloud.firestore {
         resource.data.userId == request.auth.uid;
     }
 
-    // Template interviews are public, user interviews are private
+    // User interviews are private to the user
     match /interviews/{interviewId} {
-      allow read: if request.auth != null && (
-        resource.data.template == true ||
-        resource.data.userId == request.auth.uid
-      );
-      allow write: if request.auth != null;
+      allow read, write: if request.auth != null &&
+        resource.data.userId == request.auth.uid;
     }
 
     // Feedback is private to the user

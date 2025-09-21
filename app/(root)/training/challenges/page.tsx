@@ -3,6 +3,9 @@ import { redirect } from "next/navigation";
 import ChallengeListItem from "@/components/ChallengeListItem";
 import { Challenge } from "@/types/index";
 
+// Force dynamic rendering for authentication
+export const dynamic = 'force-dynamic';
+
 // Mock data for now - later we'll fetch from Firestore
 const mockChallenges: Challenge[] = [
   {
