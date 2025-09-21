@@ -80,7 +80,7 @@ const Page = async () => {
                 </div>
                 <Link href="/interview/new" className="inline-flex">
                   <div className="inline-flex items-center px-5 py-3 rounded-xl bg-gradient-primary text-white font-semibold shadow-medium hover:shadow-strong transition">
-                    Start Interview
+                    Generate Interview
                   </div>
                 </Link>
               </div>
