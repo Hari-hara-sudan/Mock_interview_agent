@@ -1,6 +1,9 @@
 import Agent from "@/components/Agent";
 import { getCurrentUser } from "@/lib/actions/auth.action";
 
+// Force dynamic rendering for authentication
+export const dynamic = 'force-dynamic';
+
 export default async function NewInterviewPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const user = await getCurrentUser();
   const sp = (await searchParams) || {};

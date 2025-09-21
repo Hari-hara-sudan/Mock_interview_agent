@@ -28,9 +28,10 @@ export async function POST(request: Request) {
     `,
     });
 
-    // Determine if this is a user-specific interview or a template
-    // Only create templates when explicitly requested (no userId provided)
-    const isTemplate = !userId || userId === null || userId === "" || userId === undefined;
+    // Ensure userId is provided for all interviews
+    if (!userId || userId === null || userId === "" || userId === undefined) {
+      return Response.json({ success: false, error: "User ID is required" }, { status: 400 });
+    }
     
     const interview = {
       role: role,
@@ -38,11 +39,10 @@ export async function POST(request: Request) {
       level: level,
       techstack: techstack.split(","),
       questions: JSON.parse(questions),
-      userId: isTemplate ? null : userId, // Preserve user ID for user-specific interviews
+      userId: userId, // Always set the user ID
       finalized: true,
       coverImage: getRandomInterviewCover(),
       createdAt: new Date().toISOString(),
-      template: isTemplate, // Only set as template if no valid user ID
     };
 
     await db.collection("interviews").add(interview);

@@ -3,6 +3,9 @@ import { getInterviewsByUserId } from "@/lib/actions/general.action";
 import { getAllFeedbacksByInterviewId } from "@/lib/actions/getAllFeedbacksByInterviewId";
 import ProfileClient from "./ProfileClient";
 
+// Force dynamic rendering for authentication
+export const dynamic = 'force-dynamic';
+
 export default async function ProfilePage() {
   const user = await getCurrentUser();
   const interviews = user?.id ? await getInterviewsByUserId(user.id) : [];

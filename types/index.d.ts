@@ -23,7 +23,6 @@ export interface Interview {
   userId: string;
   type: string; // kept broad (Behavioral | Technical | Mixed | custom)
   finalized: boolean;
-  template: boolean; // true means reusable template
   cover?: string; // optional cover/logo image
   createdAt: string | FirebaseFirestore.Timestamp;
   updatedAt?: string | FirebaseFirestore.Timestamp;
