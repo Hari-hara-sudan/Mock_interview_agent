@@ -6,9 +6,26 @@ import { getRandomInterviewCover } from "@/lib/utils";
 
 export async function POST(request: Request) {
   const body = await request.json();
-  console.log("Received request body:", JSON.stringify(body, null, 2));
+  console.log("=== VAPI Generate API Called ===");
+  console.log("Request body:", JSON.stringify(body, null, 2));
   
-  const { type, role, level, techstack, amount, userId } = body;
+  let { type, role, level, techstack, amount, userId } = body;
+
+  // If userId is not in the body but we have VAPI context, try to extract it
+  if (!userId && body.call && body.call.variableValues) {
+    userId = body.call.variableValues.userId;
+    console.log("📧 Extracted userId from VAPI context:", userId);
+  }
+
+  // Additional debugging for VAPI call structure
+  if (body.call) {
+    console.log("VAPI call structure:", {
+      hasVariableValues: !!body.call.variableValues,
+      variableValues: body.call.variableValues,
+    });
+  }
+
+  console.log("✅ Final userId for interview:", userId);
 
   try {
     const { text: questions } = await generateText({
@@ -28,10 +45,13 @@ export async function POST(request: Request) {
     `,
     });
 
-    // Ensure userId is provided for all interviews
+    // Ensure userId is provided for all interviews - BLOCK if missing
     if (!userId || userId === null || userId === "" || userId === undefined) {
+      console.log("❌ BLOCKING: User ID is required but not provided");
       return Response.json({ success: false, error: "User ID is required" }, { status: 400 });
     }
+    
+    console.log("✅ Creating interview with userId:", userId);
     
     const interview = {
       role: role,
@@ -43,11 +63,18 @@ export async function POST(request: Request) {
       finalized: true,
       coverImage: getRandomInterviewCover(),
       createdAt: new Date().toISOString(),
+      // 🚫 DELIBERATELY NOT SETTING template field - it should never exist!
     };
 
-    await db.collection("interviews").add(interview);
+    console.log("📝 Final interview object (no template field):", {
+      ...interview,
+      questions: `[${interview.questions.length} questions]`
+    });
 
-    return Response.json({ success: true }, { status: 200 });
+    const docRef = await db.collection("interviews").add(interview);
+    console.log("✅ Interview created successfully with ID:", docRef.id);
+
+    return Response.json({ success: true, interviewId: docRef.id }, { status: 200 });
   } catch (error) {
     console.error("Error:", error);
     return Response.json({ success: false, error: error }, { status: 500 });
