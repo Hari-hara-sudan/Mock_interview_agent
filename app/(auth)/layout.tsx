@@ -2,6 +2,9 @@ import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { isAuthenticated } from "@/lib/actions/auth.action";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const AuthLayout = async ({ children }: { children: ReactNode }) => {
   const isUserAuthenticated = await isAuthenticated();
   if (isUserAuthenticated) redirect("/");
