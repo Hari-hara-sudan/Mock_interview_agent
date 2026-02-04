@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "diagrams:export": "node scripts/export-diagrams.mjs"
   },
   "dependencies": {
     "@ai-sdk/google": "^1.1.25",
@@ -14,6 +15,7 @@
     "@monaco-editor/react": "^4.7.0",
     "@radix-ui/react-avatar": "^1.1.10",
     "@radix-ui/react-label": "^2.1.2",
+    "@radix-ui/react-select": "^2.2.6",
     "@radix-ui/react-slot": "^1.1.2",
     "@radix-ui/react-tabs": "^1.1.13",
     "@vapi-ai/web": "^2.3.8",
@@ -50,6 +52,7 @@
     "@types/uuid": "^10.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.2.2",
+    "@mermaid-js/mermaid-cli": "^10.9.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

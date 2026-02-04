@@ -190,6 +190,15 @@ export const feedbackSchema = z.object({
   strengths: z.array(z.string()),
   areasForImprovement: z.array(z.string()),
   finalAssessment: z.string(),
+  questionsAndAnswers: z.array(
+    z.object({
+      question: z.string().describe("The interview question that was asked"),
+      userAnswer: z.string().describe("What the candidate actually answered"),
+      modelAnswer: z.string().describe("The ideal/recommended answer for this question"),
+      feedback: z.string().describe("Specific feedback on how the user's answer compares to the ideal answer and tips for improvement"),
+      score: z.number().describe("Score from 0-100 for this specific answer"),
+    })
+  ).describe("List of all questions asked, user's answers, and model answers for learning"),
 });
 
 export const interviewCovers = [

@@ -10,6 +10,13 @@ export interface Feedback {
   strengths: string[];
   areasForImprovement: string[];
   finalAssessment: string;
+  questionsAndAnswers?: Array<{
+    question: string;
+    userAnswer: string;
+    modelAnswer: string;
+    feedback: string;
+    score: number;
+  }>;
   createdAt: string;
 }
 
@@ -98,6 +105,14 @@ export interface SignUpParams {
   uid: string;
   name: string;
   email: string;
+  firstName?: string;
+  lastName?: string;
+  currentRole?: string;
+  experienceLevel?: string;
+  techStack?: string;
+  interviewGoals?: string;
+  preferredTopics?: string;
+  availableTime?: string;
 }
 
 export type FormType = "sign-in" | "sign-up";

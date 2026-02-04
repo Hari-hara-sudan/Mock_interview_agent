@@ -1,0 +1,5 @@
+question_id,y_true,y_pred,response_time_ms,start_ts,end_ts
+q1,correct,correct,820,2025-09-30T10:00:00Z,2025-09-30T10:00:00.820Z
+q2,incorrect,correct,1450,2025-09-30T10:01:00Z,2025-09-30T10:01:01.450Z
+q3,correct,incorrect,980,2025-09-30T10:02:00Z,2025-09-30T10:02:00.980Z
+q4,correct,correct,,2025-09-30T10:03:00Z,2025-09-30T10:03:01Z
