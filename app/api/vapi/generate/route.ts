@@ -10,15 +10,21 @@ export async function POST(request: Request) {
   const authHeader = request.headers.get("authorization") || request.headers.get("Authorization");
   console.log("[DEBUG] Authorization header received:", authHeader);
   console.log("[DEBUG] Expected VAPI_TOOL_SECRET:", process.env.VAPI_TOOL_SECRET);
+  let authedUid = null;
   if (!authHeader || authHeader !== `Bearer ${process.env.VAPI_TOOL_SECRET}`) {
-    console.log("[DEBUG] Authorization failed. Returning 401.");
-    return new Response("Unauthorized", { status: 401 });
+    // If not VAPI tool secret, try Firebase JWT
+    try {
+      authedUid = await getUidFromAuthHeader(request);
+      if (authedUid) console.log("Authenticated UID from header:", authedUid);
+    } catch (e) {
+      console.log("[DEBUG] getUidFromAuthHeader failed (not a Firebase JWT):", String(e));
+    }
+    if (!authedUid) {
+      console.log("[DEBUG] Authorization failed. Returning 401.");
+      return new Response("Unauthorized", { status: 401 });
+    }
   }
-
-  // ...existing code...
   console.log("=== VAPI Generate API Called ===");
-  const authedUid = await getUidFromAuthHeader(request);
-  if (authedUid) console.log("Authenticated UID from header:", authedUid);
 
   const body = await request.json();
   console.log("Request body:", JSON.stringify(body, null, 2));
@@ -53,7 +59,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { text: questions } = await generateText({
+    const { text: questionsRaw } = await generateText({
       model: google("gemini-3-flash-preview"),
       prompt: `Prepare questions for a job interview.
         The job role is ${role}.
@@ -71,20 +77,35 @@ export async function POST(request: Request) {
     });
     console.log("✅ Gemini working: Questions generated successfully");
 
+    // Parse questionsRaw into string[]
+    let questionsArray: string[] = [];
+    try {
+      const parsed = JSON.parse(questionsRaw);
+      if (Array.isArray(parsed) && parsed.every(q => typeof q === "string")) {
+        questionsArray = parsed;
+      } else {
+        // If not an array of strings, fallback
+        questionsArray = [questionsRaw.trim()];
+      }
+    } catch (e) {
+      // If not valid JSON, wrap as single string in array
+      questionsArray = [questionsRaw.trim()];
+    }
+
     // Ensure userId is provided for all interviews - BLOCK if missing
     if (!userId || userId === null || userId === "" || userId === undefined) {
       console.log("❌ BLOCKING: User ID is required but not provided");
       return Response.json({ success: false, error: "User ID is required" }, { status: 400 });
     }
-    
+
     console.log("✅ Creating interview with userId:", userId);
-    
+
     const interview = {
       role,
       type,
       level,
       techstack,
-      questions,
+      questions: questionsArray, // always string[]
       coverImage: getRandomInterviewCover(),
       userId,
       createdAt: new Date().toISOString(),
@@ -97,10 +118,16 @@ export async function POST(request: Request) {
 
     const docRef = await db.collection("interviews").add(interview);
     console.log("✅ Interview created successfully with ID:", docRef.id);
-    return Response.json({ success: true, interviewId: docRef.id, ...interview });
+    // Always return questions as string[] in API response
+    return Response.json({
+      success: true,
+      interviewId: docRef.id,
+      ...interview,
+      questions: questionsArray
+    });
   } catch (error) {
     console.error("Error:", error);
-    return Response.json({ success: false, error: error }, { status: 500 });
+    return Response.json({ success: false, error: String(error) }, { status: 500 });
   }
 }
 
