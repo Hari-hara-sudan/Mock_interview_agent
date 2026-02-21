@@ -1,7 +1,11 @@
 import { NextRequest } from "next/server";
 
 export async function POST(req: NextRequest) {
-  const { interviewId, userId, transcript, feedbackId } = await req.json();
+  const { interviewId, userId: bodyUserId, transcript, feedbackId } = await req.json();
+  // Verify Authorization header if present and prefer server-verified UID
+  const { getUidFromAuthHeader } = await import("@/lib/serverAuth");
+  const authedUid = await getUidFromAuthHeader(req as unknown as Request);
+  const userId = bodyUserId || authedUid || null;
   // Dynamically import server-only modules
   const { generateObject } = await import("ai");
   const { google } = await import("@ai-sdk/google");
@@ -9,12 +13,19 @@ export async function POST(req: NextRequest) {
   const { feedbackSchema } = await import("@/constants");
 
   try {
+    // Validate required fields
+    if (!interviewId) {
+      return Response.json({ success: false, error: "interviewId is required for feedback." }, { status: 400 });
+    }
+    if (!userId) {
+      return Response.json({ success: false, error: "Unauthorized: user ID missing or invalid token." }, { status: 401 });
+    }
     const formattedTranscript = transcript
       .map((sentence: { role: string; content: string }) => `- ${sentence.role}: ${sentence.content}\n`)
       .join("");
 
     const { object } = await generateObject({
-      model: google("gemini-2.0-flash-001", { structuredOutputs: false }),
+      model: google("gemini-3-flash-preview", { structuredOutputs: false }),
       schema: feedbackSchema,
       prompt: `
         You are an AI interviewer analyzing a mock interview. Your task is to evaluate the candidate based on structured categories. Be thorough and detailed in your analysis. Don't be lenient with the candidate. If there are mistakes or areas for improvement, point them out.

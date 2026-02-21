@@ -35,7 +35,8 @@ export async function POST(req: NextRequest) {
     if (newInterview && 'id' in newInterview) delete newInterview.id;
     
     const docRef = await db.collection("interviews").add(newInterview);
-    return Response.json({ success: true, id: docRef.id, ...newInterview });
+    console.log("✅ [INTERVIEW ATTEMPT] New interview created with ID:", docRef.id);
+    return Response.json({ success: true, interviewId: docRef.id, ...newInterview });
   } catch (error) {
     console.error("Error creating interview attempt:", error);
     return Response.json({ success: false, error: String(error) });
